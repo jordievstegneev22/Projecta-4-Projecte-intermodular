@@ -7,13 +7,13 @@
   />
 </p>
 
-Nom: [Posa el teu nom aquí]
+Nom: Jordi Evstegneev
 
-Nom del company/a: [Posa el nom del teu company/a aquí]
+Nom del company/a: Sergi Nuvei
 
-Número de grup: [Posa el número el vostre grup aquí]
+Número de grup:
 
-Classe: [Posa la classe aquí]
+Classe: 2n A
 
 Curs: GM Sistemes Microinformàtics i Xarxes 2026-2027
 
