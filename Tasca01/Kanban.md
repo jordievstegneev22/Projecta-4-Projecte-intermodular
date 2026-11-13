@@ -51,17 +51,26 @@ Les etiquetes de cada tasca indiquen de quin mòdul és i si és Individual o Gr
 ### Setmana 2 (divendres 20/11/2026)
 
 ![Kanban setmana 2](img/kanban_setmana2.png)
-**Què hem fet aquesta setmana:**- (pendent d'omplir)
+
+**Què hem fet aquesta setmana:**
+
+- (pendent d'omplir)
 
 ### Setmana 3 (divendres 27/11/2026)
 
 ![Kanban setmana 3](img/kanban_setmana3.png)
-**Què hem fet aquesta setmana:**- (pendent d'omplir)
+
+**Què hem fet aquesta setmana:**
+
+- (pendent d'omplir)
 
 ### Estat final del projecte (DD/MM/AAAA)
 
 ![Kanban estat final](img/kanban_final.png)
-**Què hem fet aquesta setmana:**- (pendent d'omplir)
+
+**Què hem fet aquesta setmana:**
+
+- (pendent d'omplir)
 
 ---
 
