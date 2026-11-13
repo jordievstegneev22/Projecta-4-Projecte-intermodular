@@ -4,6 +4,8 @@
 
 **Enllaç al Kanban (Planner):** [Kanban Projecte 4 - EverPia](https://planner.cloud.microsoft/ui/web/plan/kW8Ct2mIqky2bRyh_KPKq5YAE1Zq/view/board?tid=c7b5981a-7820-4ac8-ae65-03515ea81317)
 
+<table><tr><td>
+
 ## Com funciona el Kanban
 
 El tauler té quatre columnes:
@@ -14,6 +16,8 @@ El tauler té quatre columnes:
 - **Finalitzada:** tasques acabades. Planner guarda la data real de finalització i no canviem la data de venciment. Així podem veure si hem anat a temps o amb retard.
 
 Les etiquetes de cada tasca indiquen de quin mòdul és i si és Individual o Grupal.
+
+</td></tr></table>
 
 ---
 
