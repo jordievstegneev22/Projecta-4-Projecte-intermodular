@@ -12,7 +12,7 @@ git add 00-installer-config.yaml
 git commit -m "feat: afegeix configuració de xarxa amb DHCP a enps03"
 ```
 
-**Explicació:** 
+**Explicació:** Docs és documentació i feat és una funcionalitat nova. Els missatges segueixen el format "tipus: descripció".
 
 ---
 
@@ -34,7 +34,7 @@ git show HEAD
 
 ![Darrer commit a Git Graph](img/05.png)
 
-**Explicació:** 
+**Explicació:** Git log mostra el hash, l'autor, el correu, la data i el missatge de cada commit. git log --oneline només mostra el hash curt i el missatge. HEAD apunta al darrer commit.
 
 ---
 
@@ -50,7 +50,7 @@ git status
 
 ![git restore i git status net](img/07.png)
 
-**Explicació:** 
+**Explicació:** Git restore desfà els canvis del working directory que encara no tenen commit. Després el git status surt net.
 
 ---
 
@@ -70,7 +70,8 @@ git log --oneline
 ### Revert
 
 ```bash
-git revert <hash-del-commit>
+git revert --no-commit HEAD~3..HEAD
+git commit -m "revert: torna a la configuració DHCP inicial de enps03"
 ```
 
 ![Revert a Git Graph](img/09.png)
@@ -94,4 +95,4 @@ git log --oneline
 
 ![git status i git log després del reset](img/13.png)
 
-**Explicació:** 
+**Explicació:** El revert no esborra commits, en crea un de nou que desfà els canvis. El reset sí que esborra el commit, per això no es recomana.
