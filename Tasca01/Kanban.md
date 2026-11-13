@@ -4,20 +4,16 @@
 
 **Enllaç al Kanban (Planner):** [Kanban Projecte 4 - EverPia](https://planner.cloud.microsoft/ui/web/plan/kW8Ct2mIqky2bRyh_KPKq5YAE1Zq/view/board?tid=c7b5981a-7820-4ac8-ae65-03515ea81317)
 
-<table><tr><td>
-
 ## Com funciona el Kanban
 
-El tauler té quatre columnes:
-
-- **Backlog:** totes les tasques del projecte que encara no hem començat (per fer).
-- **En procés:** les tasques que estem fent ara. Quan una tasca passa aquí, l'assignem a una persona i li posem una data de venciment.
-- **Bloquejada:** tasques aturades per algun imprevist. Les marquem amb l'etiqueta "Imprevist" i hi posem la solució proposada.
-- **Finalitzada:** tasques acabades. Planner guarda la data real de finalització i no canviem la data de venciment. Així podem veure si hem anat a temps o amb retard.
+| Columna | Què hi posem |
+|---------|--------------|
+| Backlog | Totes les tasques del projecte que encara no hem començat (per fer). |
+| En procés | Les tasques que estem fent ara. Quan una tasca passa aquí, l'assignem a una persona i li posem una data de venciment. |
+| Bloquejada | Tasques aturades per algun imprevist. Les marquem amb l'etiqueta "Imprevist" i hi posem la solució proposada. |
+| Finalitzada | Tasques acabades. Planner guarda la data real de finalització i no canviem la data de venciment. Així podem veure si hem anat a temps o amb retard. |
 
 Les etiquetes de cada tasca indiquen de quin mòdul és i si és Individual o Grupal.
-
-</td></tr></table>
 
 ---
 
