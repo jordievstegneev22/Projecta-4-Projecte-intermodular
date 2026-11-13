@@ -1,6 +1,6 @@
 # Tasca 1: Kanban del projecte
 
-**Membres del grup:** Jordi Evstegneev i Sergi Nuvei
+**Membres del grup:** Jordi Evstegneev i Sergi Novell
 
 **Enllaç al Kanban (Planner):** [Kanban Projecte 4 - EverPia](https://planner.cloud.microsoft/ui/web/plan/kW8Ct2mIqky2bRyh_KPKq5YAE1Zq/view/board?tid=c7b5981a-7820-4ac8-ae65-03515ea81317)
 
@@ -25,15 +25,15 @@
 
 ## 2. Estat del Kanban
 
-### Setmana 1 (divendres DD/MM/AAAA)
+### Setmana 1 (divendres 13/11/2026)
 
 ![Kanban setmana 1](img/kanban_setmana1.png)
 
-### Setmana 2 (divendres DD/MM/AAAA)
+### Setmana 2 (divendres 20/11/2026)
 
 ![Kanban setmana 2](img/kanban_setmana2.png)
 
-### Setmana 3 (divendres DD/MM/AAAA)
+### Setmana 3 (divendres 27/11/2026)
 
 ![Kanban setmana 3](img/kanban_setmana3.png)
 

@@ -112,3 +112,22 @@ Aquesta feina és grupal, de manera que el contingut del document "kanban.md" i 
 - [Guia creació del Kanban al Planner](https://github.com/SMX-ProjecteIntermodular/Guies/blob/main/kanban/02-crear-projecte.md)
 
 - [Tutorial de Microsoft 365 Planner (5 vídeos). Autor: Squalid via YouTube](https://youtube.com/playlist?list=PL2uOSBfdIiYF7Sjsiw9WVz8f1Q5Dfyt9E&si=PIAHSZ3oQ9tZLysI)
+
+## Backlog del projecte
+
+**Enllaç al Kanban (Planner):** [Kanban Projecte 4 - EverPia](https://planner.cloud.microsoft/ui/web/plan/kW8Ct2mIqky2bRyh_KPKq5YAE1Zq/view/board?tid=c7b5981a-7820-4ac8-ae65-03515ea81317)
+
+| Núm. | Tasca | Descripció breu |
+|------|-------|-----------------|
+| 1 | Gestió del projecte amb metodologia Kanban | Crear el Kanban al Planner, omplir el backlog i fer-ne el seguiment durant tot el projecte. |
+| 2 | Git, viatjant pel temps | Practicar l'ús de Git: commits, historial, branques i recuperació de versions anteriors. |
+| 3 | Validació de git i GitHub | Demostrar el domini de Git i GitHub per obtenir la insígnia d'EverPia. |
+| 4 | Emmagatzematge redundant: LVM i espais d'emmagatzematge | Configurar emmagatzematge redundant amb LVM (Linux) i Espais d'emmagatzematge (Windows). |
+| 5 | Disaster Recovery Plan: pla de còpies | Dissenyar i documentar un pla de còpies de seguretat i recuperació. |
+| 6 | Administració avançada de servidors Linux | Instal·lar i comparar gestors gràfics web per administrar un servidor Ubuntu. |
+| 7 | Monitorització de servidors Linux | Instal·lar i configurar eines de monitorització de servidors Linux. |
+| 8 | Repte RACC | Treballar el repte Joves i Mobilitat proposat pel RACC. |
+| 9 | Instal·lant un servidor de noms | Implantar un servei DNS intern per al client DigiCore. |
+| 10 | ODS i el sector IT: el costat sostenible d'EverPia | Analitzar l'impacte dels serveis IT sobre els Objectius de Desenvolupament Sostenible. |
+
+El seguiment setmanal i els gràfics estan a [Kanban.md](Kanban.md).

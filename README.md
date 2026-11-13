@@ -9,9 +9,9 @@
 
 Nom: Jordi Evstegneev
 
-Nom del company/a: Sergi Nuvei
+Nom del company/a: Sergi Novell
 
-Número de grup:
+Número de grup: 2
 
 Classe: 2n A
 
