@@ -12,7 +12,7 @@ git add 00-installer-config.yaml
 git commit -m "feat: afegeix configuració de xarxa amb DHCP a enps03"
 ```
 
-**Explicació:** Docs és documentació i feat és una funcionalitat nova. Els missatges segueixen el format "tipus: descripció".
+**Explicació:** `docs` és documentació i `feat` és una funcionalitat nova. Els missatges segueixen el format "tipus: descripció".
 
 ---
 
@@ -34,7 +34,7 @@ git show HEAD
 
 ![Darrer commit a Git Graph](img/05.png)
 
-**Explicació:** Git log mostra el hash, l'autor, el correu, la data i el missatge de cada commit. git log --oneline només mostra el hash curt i el missatge. HEAD apunta al darrer commit.
+**Explicació:** `git log` mostra el hash, l'autor, el correu, la data i el missatge de cada commit. `git log --oneline` només mostra el hash curt i el missatge. `HEAD` apunta al darrer commit.
 
 ---
 
@@ -50,7 +50,7 @@ git status
 
 ![git restore i git status net](img/07.png)
 
-**Explicació:** Git restore desfà els canvis del working directory que encara no tenen commit. Després el git status surt net.
+**Explicació:** `git restore` desfà els canvis del working directory que encara no tenen commit. Després el `git status` surt net.
 
 ---
 
