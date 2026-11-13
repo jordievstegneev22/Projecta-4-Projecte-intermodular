@@ -1,5 +1,11 @@
 # Tasca 2: Git, viatjant pel temps
 
+En aquesta tasca treballem l'historial de versions amb Git: com documentar bé els commits, consultar l'historial del repositori i tornar enrere en el temps amb `git restore` (descartar canvis del working directory), `git revert` (desfer un commit creant-ne un de nou) i `git reset` (eliminar commits de l'historial).
+
+**Solucions de l'activitat:** [solucions.md](solucions.md)
+
+---
+
 > Enunciat original: <https://github.com/SMX-ProjecteIntermodular/Projecte4/blob/main/activitats/Tasca02-Git.md>
 
 ## Enunciat
