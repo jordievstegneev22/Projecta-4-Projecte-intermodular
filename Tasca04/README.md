@@ -39,8 +39,6 @@ sudo apt install lvm2 -y
 lsblk
 ```
 
-![Instal·lació de lvm2 i discos amb lsblk](img/01_lsblk_inicial.png)
-
 ---
 
 ## 4. Configuració inicial
@@ -55,8 +53,6 @@ sudo pvcreate /dev/sdc
 sudo pvs
 ```
 
-![Volums físics creats amb pvs](img/02_pvs.png)
-
 ### 4.2. Crear el grup de volums (VG)
 
 Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
@@ -65,8 +61,6 @@ Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
 sudo vgcreate vg1 /dev/sdb /dev/sdc
 sudo vgs
 ```
-
-![Grup de volums vg1 amb vgs](img/03_vgs.png)
 
 ### 4.3. Crear el volum lògic (LV)
 
@@ -83,8 +77,6 @@ Creem la carpeta on el muntarem i comprovem que el volum existeix:
 sudo mkdir -p /mnt/lv1
 sudo lvs
 ```
-
-![Volum lògic lv1 amb lvs](img/04_lvs.png)
 
 ---
 
@@ -104,8 +96,6 @@ Al final del fitxer afegim aquesta línia i el desem (`Ctrl+O`, `Enter`, `Ctrl+X
 /dev/vg1/lv1 /mnt/lv1 ext4 defaults 0 0
 ```
 
-![Línia afegida a /etc/fstab](img/05_fstab.png)
-
 Muntem tot el que hi ha a `fstab` i comprovem que `lv1` surt muntat a `/mnt/lv1`:
 
 ```bash
@@ -113,11 +103,7 @@ sudo mount -av
 df -h
 ```
 
-![Muntatge amb mount -av i df -h](img/06_mount_df.png)
-
 Finalment **reiniciem la màquina** i tornem a fer `df -h` per comprovar que el volum s'ha muntat sol.
-
-![df -h després del reinici](img/07_df_reinici.png)
 
 ---
 
@@ -134,8 +120,6 @@ sudo lvs -a -o name,copy_percent,devices vg1
 
 Aquí es veu que el volum `lvm_mirror` fa servir **`sdb` i `sdc` alhora**. Si fem `lsblk`, també es veu: cada disc té una part que es diu `rimage_0` i `rimage_1`, que són les dues còpies del mirall.
 
-![Volum en mirall amb lvs -a](img/08_mirall_lvs.png)
-
 Li donem format, creem la carpeta `/mnt/mirror` i l'hi muntem:
 
 ```bash
@@ -149,8 +133,6 @@ I hi guardem un fitxer de prova:
 ```bash
 echo "dades del bufet" | sudo tee /mnt/mirror/prova.txt
 ```
-
-![Fitxer de prova al mirall](img/09_mirall_prova.png)
 
 ---
 
@@ -170,8 +152,6 @@ sudo vgextend vg1 /dev/sdd /dev/sde
 sudo vgs
 ```
 
-![vg1 ampliat amb sdd i sde](img/10_vgextend.png)
-
 ### 7.2. Crear el volum de dades
 
 Creem un volum de 5 GB que es diu `lv_dades`, **només al disc `sdd`**, i li donem format:
@@ -187,8 +167,6 @@ El muntem a la carpeta `/mnt/lv_dades`:
 sudo mkdir -p /mnt/lv_dades
 sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 ```
-
-![Volum lv_dades creat i muntat](img/11_lv_dades.png)
 
 ### 7.3. Afegir fitxers de prova
 
@@ -206,8 +184,6 @@ Comprovem que les imatges hi són:
 ls -l /mnt/lv_dades
 ```
 
-![Imatges a lv_dades](img/12_imatges.png)
-
 ### 7.4. Crear el snapshot
 
 Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, que és un disc diferent del de les dades:
@@ -216,8 +192,6 @@ Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, 
 sudo lvcreate -L 2G -s -n lv_snapshot /dev/vg1/lv_dades /dev/sde
 sudo lvs
 ```
-
-![Snapshot lv_snapshot creat](img/13_snapshot.png)
 
 ---
 
@@ -233,8 +207,6 @@ ls -l /mnt/lv_dades
 ```
 
 Les imatges han desaparegut. Només queda la carpeta **`lost+found`**: és normal, la crea `ext4` automàticament i `rm` sense `-r` no esborra carpetes.
-
-![Dades esborrades](img/14_desastre.png)
 
 ### 8.2. Restaurar des del snapshot
 
@@ -252,8 +224,6 @@ sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 ls -l /mnt/lv_dades
 ```
 
-![Imatges recuperades](img/15_restaurat.png)
-
 Després de la fusió, el **snapshot desapareix**: s'ha "gastat" per restaurar les dades. Si en volem un altre, l'hem de tornar a crear.
 
 ---
@@ -269,8 +239,6 @@ df -h /mnt/lv_dades
 sudo vgs
 ```
 
-![Mida abans d'ampliar i espai lliure del VG](img/16_abans_ampliar.png)
-
 Desmuntem el volum i li donem tot l'espai lliure que queda al grup:
 
 ```bash
@@ -285,8 +253,6 @@ sudo e2fsck -f /dev/vg1/lv_dades
 sudo resize2fs /dev/vg1/lv_dades
 ```
 
-![lvextend, e2fsck i resize2fs](img/17_ampliar.png)
-
 El tornem a muntar i comprovem que ara és més gran i que les imatges continuen allà:
 
 ```bash
@@ -294,8 +260,6 @@ sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 df -h /mnt/lv_dades
 ls -l /mnt/lv_dades
 ```
-
-![Mida després d'ampliar i dades intactes](img/18_despres_ampliar.png)
 
 ---
 
