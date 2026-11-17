@@ -39,6 +39,8 @@ sudo apt install lvm2 -y
 lsblk
 ```
 
+![Instal·lació de lvm2 i discos amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20151636.png)
+
 ---
 
 ## 4. Configuració inicial
@@ -53,6 +55,8 @@ sudo pvcreate /dev/sdc
 sudo pvs
 ```
 
+![Volums físics creats amb pvs](img/Captura%20de%20pantalla%202026-11-17%20151746.png)
+
 ### 4.2. Crear el grup de volums (VG)
 
 Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
@@ -61,6 +65,8 @@ Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
 sudo vgcreate vg1 /dev/sdb /dev/sdc
 sudo vgs
 ```
+
+![Grup de volums vg1 amb vgs](img/Captura%20de%20pantalla%202026-11-17%20151851.png)
 
 ### 4.3. Crear el volum lògic (LV)
 
@@ -77,6 +83,8 @@ Creem la carpeta on el muntarem i comprovem que el volum existeix:
 sudo mkdir -p /mnt/lv1
 sudo lvs
 ```
+
+![Creació, format i comprovació de lv1](img/Captura%20de%20pantalla%202026-11-17%20152129.png)
 
 ---
 
@@ -96,6 +104,8 @@ Al final del fitxer afegim aquesta línia i el desem (`Ctrl+O`, `Enter`, `Ctrl+X
 /dev/vg1/lv1 /mnt/lv1 ext4 defaults 0 0
 ```
 
+![Línia afegida a /etc/fstab](img/Captura%20de%20pantalla%202026-11-17%20152442.png)
+
 Muntem tot el que hi ha a `fstab` i comprovem que `lv1` surt muntat a `/mnt/lv1`:
 
 ```bash
@@ -103,7 +113,11 @@ sudo mount -av
 df -h
 ```
 
+![Muntatge amb mount -av i df -h](img/Captura%20de%20pantalla%202026-11-17%20152526.png)
+
 Finalment **reiniciem la màquina** i tornem a fer `df -h` per comprovar que el volum s'ha muntat sol.
+
+![df -h després del reinici](img/Captura%20de%20pantalla%202026-11-17%20153458.png)
 
 ---
 
@@ -120,6 +134,10 @@ sudo lvs -a -o name,copy_percent,devices vg1
 
 Aquí es veu que el volum `lvm_mirror` fa servir **`sdb` i `sdc` alhora**. Si fem `lsblk`, també es veu: cada disc té una part que es diu `rimage_0` i `rimage_1`, que són les dues còpies del mirall.
 
+![Creació del volum en mirall lvm_mirror](img/Captura%20de%20pantalla%202026-11-17%20153742.png)
+
+![lsblk amb les còpies rimage_0 i rimage_1 del mirall](img/Captura%20de%20pantalla%202026-11-17%20154830.png)
+
 Li donem format, creem la carpeta `/mnt/mirror` i l'hi muntem:
 
 ```bash
@@ -134,6 +152,8 @@ I hi guardem un fitxer de prova:
 echo "dades del bufet" | sudo tee /mnt/mirror/prova.txt
 ```
 
+![Format, muntatge i fitxer de prova al mirall](img/Captura%20de%20pantalla%202026-11-17%20154416.png)
+
 ---
 
 ## 7. Instantànies (snapshots)
@@ -144,6 +164,8 @@ Un **snapshot** és com una **"foto"** d'un volum en un moment concret. Si despr
 
 Amb la **màquina apagada**, afegim a VirtualBox **2 discos més de 10 GB**. Dins de Linux es diran `sdd` i `sde`.
 
+![Discos nous sdd i sde amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20160232.png)
+
 Els preparem per a LVM, els afegim al grup `vg1` i comprovem que el grup ara és més gran:
 
 ```bash
@@ -151,6 +173,8 @@ sudo pvcreate /dev/sdd /dev/sde
 sudo vgextend vg1 /dev/sdd /dev/sde
 sudo vgs
 ```
+
+![vg1 ampliat amb sdd i sde](img/Captura%20de%20pantalla%202026-11-17%20160516.png)
 
 ### 7.2. Crear el volum de dades
 
@@ -184,6 +208,8 @@ Comprovem que les imatges hi són:
 ls -l /mnt/lv_dades
 ```
 
+![Imatges descarregades a lv_dades](img/Captura%20de%20pantalla%202026-11-17%20163529.png)
+
 ### 7.4. Crear el snapshot
 
 Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, que és un disc diferent del de les dades:
@@ -192,6 +218,8 @@ Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, 
 sudo lvcreate -L 2G -s -n lv_snapshot /dev/vg1/lv_dades /dev/sde
 sudo lvs
 ```
+
+![Snapshot lv_snapshot creat](img/Captura%20de%20pantalla%202026-11-17%20163803.png)
 
 ---
 
@@ -207,6 +235,10 @@ ls -l /mnt/lv_dades
 ```
 
 Les imatges han desaparegut. Només queda la carpeta **`lost+found`**: és normal, la crea `ext4` automàticament i `rm` sense `-r` no esborra carpetes.
+
+![Esborrat dels fitxers amb rm](img/Captura%20de%20pantalla%202026-11-17%20163924.png)
+
+![Dades esborrades, només queda lost+found](img/Captura%20de%20pantalla%202026-11-17%20164007.png)
 
 ### 8.2. Restaurar des del snapshot
 
@@ -224,6 +256,8 @@ sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 ls -l /mnt/lv_dades
 ```
 
+![Restauració amb lvconvert --merge i imatges recuperades](img/Captura%20de%20pantalla%202026-11-17%20164331.png)
+
 Després de la fusió, el **snapshot desapareix**: s'ha "gastat" per restaurar les dades. Si en volem un altre, l'hem de tornar a crear.
 
 ---
@@ -239,12 +273,16 @@ df -h /mnt/lv_dades
 sudo vgs
 ```
 
+![Mida abans d'ampliar i espai lliure del VG](img/Captura%20de%20pantalla%202026-11-17%20164433.png)
+
 Desmuntem el volum i li donem tot l'espai lliure que queda al grup:
 
 ```bash
 sudo umount /mnt/lv_dades
 sudo lvextend -l +100%FREE /dev/vg1/lv_dades
 ```
+
+![Ampliació del volum amb lvextend](img/Captura%20de%20pantalla%202026-11-17%20164558.png)
 
 Revisem el sistema de fitxers i l'ampliem perquè ocupi tot el volum nou:
 
@@ -253,6 +291,8 @@ sudo e2fsck -f /dev/vg1/lv_dades
 sudo resize2fs /dev/vg1/lv_dades
 ```
 
+![Revisió amb e2fsck i ampliació amb resize2fs](img/Captura%20de%20pantalla%202026-11-17%20164710.png)
+
 El tornem a muntar i comprovem que ara és més gran i que les imatges continuen allà:
 
 ```bash
@@ -260,6 +300,8 @@ sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 df -h /mnt/lv_dades
 ls -l /mnt/lv_dades
 ```
+
+![Mida després d'ampliar i dades intactes](img/Captura%20de%20pantalla%202026-11-17%20164851.png)
 
 ---
 
