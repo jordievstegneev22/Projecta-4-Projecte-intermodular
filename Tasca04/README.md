@@ -1,326 +1,108 @@
-# Tasca 4: Gestió emmagatzematge redundant amb LVM
+# Tasca 4: Emmagatzematge redundant: LVM i espais d'emmagatzematge
 
-## 1. Presentació
+> Enunciat original: <https://github.com/SMX-0226SI/NF2AA2-GestioDiscos>
 
-Som tècnics de la consultora **EverPia**. Un **bufet d'advocats** ens ha contractat perquè treballa amb dades molt sensibles i el seu sistema d'emmagatzematge actual pot fallar i perdre informació.
+## Enunciat
 
-Hem dissenyat una solució amb **LVM** a Linux (Zorin OS) que compleix tres objectius:
+## Presentació de l'activitat
 
-- **Alta disponibilitat:** les dades continuen accessibles encara que falli un disc.
-- **Redundància:** les dades es guarden duplicades i es poden recuperar si s'esborren.
-- **Escalabilitat:** es pot ampliar l'espai quan faci falta, sense perdre dades.
+La informació és un dels béns més valuosos per qualsevol organització, en aquest cas, agafaràs el rol d'un tècnic d'una consultora tecnològica, EverPia, que ha estat contractada per un bufet d'advocats amb dades altament sensibles. L'objectiu és revisar i optimitzar el seu sistema d'emmagatzematge de dades, ja que l'actual és vulnerable a fallades i pèrdua d'informació.
 
-Aquesta guia explica pas a pas com ho hem fet, perquè qualsevol persona ho pugui repetir.
+La direcció del client ha expressat la necessitat urgent de renovar els seus sistemes de servidors per garantir que la informació estigui protegida contra fallades de disc i que l'espai pugui ser ampliat sense interrupcions.
 
----
+Com a tècnics d'EverPia, teniu l'encàrrec de dissenyar i documentar les solucions d'emmagatzematge que compliran aquests requisits tant en entorns Linux com Windows. Aquest disseny permetrà presentar al client una proposta de solució.
 
-## 2. Conceptes bàsics de LVM
+![tècnic amb emmagatzematge redundant](img/01.png)
 
-**LVM** (Logical Volume Manager) és una eina de Linux que permet gestionar els discos de forma flexible. En lloc de treballar directament amb particions fixes, LVM ajunta els discos i després en fa "trossos" a mida.
+L'objectiu principal és dissenyar i documentar dues solucions d'emmagatzematge (una per servidors Linux i una per servidors Windows) que compleixin amb els principis d'alta disponibilitat, redundància i escalabilitat per al client. Com ha de ser una prova de concepte, no treballareu amb servidors, sinó que, per facilitat, usareu màquines virtuals de sistemes operatius clients per documentar els procediments.
 
-LVM té tres nivells:
+### Durada de l'activitat
 
-- **PV (Physical Volume):** és un disc físic (o una partició) preparat per fer-lo servir amb LVM. Per exemple, `/dev/sdb`.
-- **VG (Volume Group):** és un "magatzem" que ajunta l'espai de diversos PV. Per exemple, `vg1` ajunta `sdb` i `sdc`.
-- **LV (Logical Volume):** és un tros d'espai que agafem del VG i que fem servir com si fos un disc. Hi posem format i el muntem en una carpeta.
+La durada estimada de l'activitat és de 5 hores.
 
-Resumint: **discos (PV) → magatzem (VG) → volums (LV)**.
+### Objectius de l'activitat
 
----
+Entendre el funcionament dels espais d'emmagatzematge a Windows i la seva utilitat per millorar el rendiment i la tolerància a fallades.
 
-## 3. Preparació
+### Competències treballades
 
-Fem servir una màquina virtual amb **Zorin OS** a **VirtualBox**. Abans d'engegar-la, hi afegim **2 discos de 10 GB**. Dins de Linux es diran `sdb` i `sdc`.
+n) Mantenir un esperit constant d’innovació i actualització en l’àmbit del sector informàtic.
 
-Instal·lem el paquet `lvm2`, que conté les comandes de LVM, i mirem els discos que té la màquina:
+### Resultats d'aprenentatge i criteris d'avaluació
 
-```bash
-sudo apt install lvm2 -y
-lsblk
-```
+RA2. Gestiona dispositius d'emmagatzematge descrivint els procediments efectuats i aplicant tècniques per assegurar la integritat de la informació.
 
-![Instal·lació de lvm2 i discos amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20151636.png)
+2.2 Té en compte factors inherents a l’emmagatzematge de la informació (rendiment, disponibilitat, accessibilitat, entre d’altres)..
 
----
+### Continguts
 
-## 4. Configuració inicial
+- Sistemes d'emmagatzematge redudants.
 
-### 4.1. Crear els volums físics (PV)
+### Capacitats clau
 
-Preparem els dos discos perquè LVM els pugui fer servir i comprovem que s'han creat:
+- Autonomia
+- Organització del treball
+- Responsabilitat
+- Resolució de problemes
 
-```bash
-sudo pvcreate /dev/sdb
-sudo pvcreate /dev/sdc
-sudo pvs
-```
+### Semàfor ús de la IA
 
-![Volums físics creats amb pvs](img/Captura%20de%20pantalla%202026-11-17%20151746.png)
+🟠 Aquesta activitat permet un ús parcial o restringit.
 
-### 4.2. Crear el grup de volums (VG)
+- Permès per com a eina de suport en la millora de la redacció dels informes, cerca preliminar d'informació, estructuració d'idees o explicació de conceptes teòrics complexos.
+- Condicions: Cal processar, entendre i validar sempre els resultats rebuts. **Està totalment prohibit copiar l'enunciat d'un exercici directament al xat de la IA i enganxar la resposta generada** per al lliurament final sense treball propi ni anàlisi crítica.
 
-Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
+## Enunciat de l'activitat
 
-```bash
-sudo vgcreate vg1 /dev/sdb /dev/sdc
-sudo vgs
-```
+### 1. LVM amb Zorin OS
 
-![Grup de volums vg1 amb vgs](img/Captura%20de%20pantalla%202026-11-17%20151851.png)
+S'ha d'utilitzar la distribució Zorin OS (o una alternativa Linux compatible) per demostrar la utilitat del Logical Volume Manager (LVM).
 
-### 4.3. Crear el volum lògic (LV)
+Requisits de la Implementació i Demostració:
 
-Creem un volum lògic de 4 GB que es diu `lv1` i li donem format `ext4` perquè s'hi puguin guardar fitxers:
+- Configuració Inicial: Crear un grup de volums (VG) i un volum lògic (LV) utilitzant inicialment un mínim de dos discs durs de 10 GB de capacitat. Aquest volum haurà estar formatat i muntat automàticament al sistema mitjançant l’edició de l’arxiu `/etc/fstab`.
 
-```bash
-sudo lvcreate -L 4G -n lv1 vg1
-sudo mkfs.ext4 /dev/vg1/lv1
-```
+- Alta Disponibilitat: Implementar la configuració d’un mirall (lvm_mirror) que protegeixi la informació davant la fallada d'un disc.
 
-Creem la carpeta on el muntarem i comprovem que el volum existeix:
+- Instantànies (snapshots):  Crear i afegir dos discos de 10 GB al grup de volums. Crear un volum (lvm_dades) amb el primer disc afegit, formatar-lo i muntar-lo. A continuació afegir arxius al volum (poden ser imatges d’Internet). Usar el segon disc afegit per crear un snapshot (lv_snapshot) i documentar com es pot restaurar aquest snapshot, si per exemple, la informació del volum original es danyés.
 
-```bash
-sudo mkdir -p /mnt/lv1
-sudo lvs
-```
+- Escalabilitat: Demostrar el procés d'ampliació. Usar l’espai que quedi lliure dins el grup de volums per ampliar el volum lv_dades.
 
-![Creació, format i comprovació de lv1](img/Captura%20de%20pantalla%202026-11-17%20152129.png)
+### 2. Espais d'emmagatzematge a Windows 11
 
----
+S'ha d'utilitzar Windows 11 per demostrar les configuracions possibles mitjançant els Espais d'Emmagatzematge (Storage Spaces).
 
-## 5. Muntatge automàtic amb /etc/fstab
+Requisits de la Implementació i Demostració:
 
-Volem que el volum es munti sol cada vegada que s'engega l'ordinador. Per això l'afegim al fitxer `/etc/fstab`.
+- Configuració inicial: Creació d'un Storage Pool: Crear un pool d'emmagatzematge inicialment amb tres discos de 10 GB (simulats).
 
-Obrim el fitxer amb l'editor `nano`:
+- Estudi de Configuracions: Demostrar i documentar la creació d'un Espai d'Emmagatzematge utilitzant:
+  - Resiliència de Mirall (Mirroring): Usar dos dels discos. Comprovar que ofereix alta disponibilitat.
+  - Resiliència de Paritat (Parity): Explicant la seva eficiència d'espai en comparació amb el mirall. Cal usar els tres discos.
+  - Resiliència de mirall triple. Afegir tant discos de 10 GB com siguin necessaris.
 
-```bash
-sudo nano /etc/fstab
-```
+- Demostració de la Gestió: Mostrar com es visualitza l'estat dels discos i del pool des de la consola de gestió de Windows, simulant la facilitat de manteniment.
 
-Al final del fitxer afegim aquesta línia i el desem (`Ctrl+O`, `Enter`, `Ctrl+X`):
+### 💻 Entorn de treball
 
-```text
-/dev/vg1/lv1 /mnt/lv1 ext4 defaults 0 0
-```
+#### Espais d'emmagatzematge a Windows
 
-![Línia afegida a /etc/fstab](img/Captura%20de%20pantalla%202026-11-17%20152442.png)
+Màquina virtual Windows 11, amb les configuracions habituals de RAM, xarxa i emmagatzematge principal.
 
-Muntem tot el que hi ha a `fstab` i comprovem que `lv1` surt muntat a `/mnt/lv1`:
+Abans de començar i la màquina apagada, caldrà crear **3 discs durs addicionals** a la màquina virtual, amb una mida de 10 GB cadascun, que serviran per crear l'espai d'emmagatzematge inicial.
 
-```bash
-sudo mount -av
-df -h
-```
+#### LVM (Logical Volume Manager) a Linux
 
-![Muntatge amb mount -av i df -h](img/Captura%20de%20pantalla%202026-11-17%20152526.png)
+Màquina virtual Zorin OS, amb les configuracions habituals de RAM, xarxa i emmagatzematge principal.
 
-Finalment **reiniciem la màquina** i tornem a fer `df -h` per comprovar que el volum s'ha muntat sol.
+Crear 2 discos virtuals de 10 GB cadascun, que serviran per crear el grup de volum inicial i connectar-los a la màquina virtual abans d'iniciar-la.
 
-![df -h després del reinici](img/Captura%20de%20pantalla%202026-11-17%20153458.png)
+### Documentació i Informe Final
 
----
+Documenteu la configuració i els passos seguits per a cada part de l'activitat, incloent captures de pantalla i explicacions detallades.
 
-## 6. Alta disponibilitat: volum en mirall
+## Material de suport
 
-Un **mirall** (RAID 1) guarda les mateixes dades en dos discos alhora. Si un disc es trenca, les dades continuen a l'altre.
+- [Guia LVM](LVM.md)
 
-Creem un volum de 4 GB en mirall (`-m 1` vol dir "una còpia extra") i mirem a quins discos està:
-
-```bash
-sudo lvcreate -L 4G -m 1 -n lvm_mirror vg1
-sudo lvs -a -o name,copy_percent,devices vg1
-```
-
-Aquí es veu que el volum `lvm_mirror` fa servir **`sdb` i `sdc` alhora**. Si fem `lsblk`, també es veu: cada disc té una part que es diu `rimage_0` i `rimage_1`, que són les dues còpies del mirall.
-
-![Creació del volum en mirall lvm_mirror](img/Captura%20de%20pantalla%202026-11-17%20153742.png)
-
-![lsblk amb les còpies rimage_0 i rimage_1 del mirall](img/Captura%20de%20pantalla%202026-11-17%20154830.png)
-
-Li donem format, creem la carpeta `/mnt/mirror` i l'hi muntem:
-
-```bash
-sudo mkfs.ext4 /dev/vg1/lvm_mirror
-sudo mkdir -p /mnt/mirror
-sudo mount /dev/vg1/lvm_mirror /mnt/mirror
-```
-
-I hi guardem un fitxer de prova:
-
-```bash
-echo "dades del bufet" | sudo tee /mnt/mirror/prova.txt
-```
-
-![Format, muntatge i fitxer de prova al mirall](img/Captura%20de%20pantalla%202026-11-17%20154416.png)
-
----
-
-## 7. Instantànies (snapshots)
-
-Un **snapshot** és com una **"foto"** d'un volum en un moment concret. Si després s'esborren o es fan malbé les dades, podem tornar a l'estat de la foto.
-
-### 7.1. Afegir dos discos nous
-
-Amb la **màquina apagada**, afegim a VirtualBox **2 discos més de 10 GB**. Dins de Linux es diran `sdd` i `sde`.
-
-![Discos nous sdd i sde amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20160232.png)
-
-Els preparem per a LVM, els afegim al grup `vg1` i comprovem que el grup ara és més gran:
-
-```bash
-sudo pvcreate /dev/sdd /dev/sde
-sudo vgextend vg1 /dev/sdd /dev/sde
-sudo vgs
-```
-
-![vg1 ampliat amb sdd i sde](img/Captura%20de%20pantalla%202026-11-17%20160516.png)
-
-### 7.2. Crear el volum de dades
-
-Creem un volum de 5 GB que es diu `lv_dades`, **només al disc `sdd`**, i li donem format:
-
-```bash
-sudo lvcreate -L 5G -n lv_dades vg1 /dev/sdd
-sudo mkfs.ext4 /dev/vg1/lv_dades
-```
-
-El muntem a la carpeta `/mnt/lv_dades`:
-
-```bash
-sudo mkdir -p /mnt/lv_dades
-sudo mount /dev/vg1/lv_dades /mnt/lv_dades
-```
-
-### 7.3. Afegir fitxers de prova
-
-Descarreguem tres imatges d'internet al volum perquè faci de "dades del bufet":
-
-```bash
-sudo wget -O /mnt/lv_dades/imagen1.jpg https://picsum.photos/800
-sudo wget -O /mnt/lv_dades/imagen2.jpg https://picsum.photos/800
-sudo wget -O /mnt/lv_dades/imagen3.jpg https://picsum.photos/800
-```
-
-Comprovem que les imatges hi són:
-
-```bash
-ls -l /mnt/lv_dades
-```
-
-![Imatges descarregades a lv_dades](img/Captura%20de%20pantalla%202026-11-17%20163529.png)
-
-### 7.4. Crear el snapshot
-
-Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, que és un disc diferent del de les dades:
-
-```bash
-sudo lvcreate -L 2G -s -n lv_snapshot /dev/vg1/lv_dades /dev/sde
-sudo lvs
-```
-
-![Snapshot lv_snapshot creat](img/Captura%20de%20pantalla%202026-11-17%20163803.png)
-
----
-
-## 8. Simular un desastre i restaurar
-
-### 8.1. Esborrar les dades
-
-Simulem que algú esborra per error tots els fitxers del volum i mirem què queda:
-
-```bash
-sudo rm /mnt/lv_dades/*
-ls -l /mnt/lv_dades
-```
-
-Les imatges han desaparegut. Només queda la carpeta **`lost+found`**: és normal, la crea `ext4` automàticament i `rm` sense `-r` no esborra carpetes.
-
-![Esborrat dels fitxers amb rm](img/Captura%20de%20pantalla%202026-11-17%20163924.png)
-
-![Dades esborrades, només queda lost+found](img/Captura%20de%20pantalla%202026-11-17%20164007.png)
-
-### 8.2. Restaurar des del snapshot
-
-Desmuntem el volum i fusionem el snapshot amb el volum original. Així el volum torna a l'estat de la "foto":
-
-```bash
-sudo umount /mnt/lv_dades
-sudo lvconvert --merge /dev/vg1/lv_snapshot
-```
-
-El tornem a muntar i comprovem que les imatges tornen a ser-hi:
-
-```bash
-sudo mount /dev/vg1/lv_dades /mnt/lv_dades
-ls -l /mnt/lv_dades
-```
-
-![Restauració amb lvconvert --merge i imatges recuperades](img/Captura%20de%20pantalla%202026-11-17%20164331.png)
-
-Després de la fusió, el **snapshot desapareix**: s'ha "gastat" per restaurar les dades. Si en volem un altre, l'hem de tornar a crear.
-
----
-
-## 9. Escalabilitat: ampliar el volum
-
-LVM permet fer més gran un volum quan es queda petit, sense perdre les dades.
-
-Primer mirem quant ocupa ara `lv_dades` i quant espai lliure té el grup (columna **VFree**):
-
-```bash
-df -h /mnt/lv_dades
-sudo vgs
-```
-
-![Mida abans d'ampliar i espai lliure del VG](img/Captura%20de%20pantalla%202026-11-17%20164433.png)
-
-Desmuntem el volum i li donem tot l'espai lliure que queda al grup:
-
-```bash
-sudo umount /mnt/lv_dades
-sudo lvextend -l +100%FREE /dev/vg1/lv_dades
-```
-
-![Ampliació del volum amb lvextend](img/Captura%20de%20pantalla%202026-11-17%20164558.png)
-
-Revisem el sistema de fitxers i l'ampliem perquè ocupi tot el volum nou:
-
-```bash
-sudo e2fsck -f /dev/vg1/lv_dades
-sudo resize2fs /dev/vg1/lv_dades
-```
-
-![Revisió amb e2fsck i ampliació amb resize2fs](img/Captura%20de%20pantalla%202026-11-17%20164710.png)
-
-El tornem a muntar i comprovem que ara és més gran i que les imatges continuen allà:
-
-```bash
-sudo mount /dev/vg1/lv_dades /mnt/lv_dades
-df -h /mnt/lv_dades
-ls -l /mnt/lv_dades
-```
-
-![Mida després d'ampliar i dades intactes](img/Captura%20de%20pantalla%202026-11-17%20164851.png)
-
----
-
-## 10. Problemes trobats i solucions
-
-| Problema | Causa | Solució |
-|----------|-------|---------|
-| En muntar `lv_dades` sortia l'error **"superbloque incorrecto"**. | El volum encara no tenia format. | Donar-li format amb `sudo mkfs.ext4 /dev/vg1/lv_dades` abans de muntar-lo. |
-| `cp ~/Downloads/*` donava error. | No hi havia cap imatge a la carpeta Downloads. | Descarregar les imatges directament amb `wget`. |
-| `wget` donava l'error **"opción incorrecta"**. | Havia escrit un **zero** (`-0`) en lloc de la **lletra O** (`-O`). | Escriure `-O` amb la lletra O majúscula. |
-
----
-
-## 11. Conclusió per al client
-
-Amb aquesta solució, el bufet d'advocats té les seves dades molt més protegides:
-
-- **El mirall** protegeix davant la **fallada d'un disc**: les dades estan duplicades en dos discos i, si un es trenca, l'altre continua funcionant.
-- **Els snapshots** permeten **recuperar dades esborrades o danyades**, tornant a l'estat d'una "foto" anterior.
-- **LVM** permet **ampliar l'espai** afegint discos nous, **sense perdre dades** i sense haver de reinstal·lar res.
-
-**Recomanació per al bufet:** guardar els documents dels clients en un volum en **mirall**, fer **snapshots periòdics** (per exemple, cada dia abans de tancar) en un disc diferent, i deixar espai lliure al grup de volums per poder créixer quan calgui. Tot i això, LVM no substitueix les **còpies de seguretat**: cal tenir també còpies fora del servidor.
+- [Guia Espais d'emmagatzematge Windows](StorageSpaces.md)

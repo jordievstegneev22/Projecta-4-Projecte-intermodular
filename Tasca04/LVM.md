@@ -1,192 +1,326 @@
-# Guia bàsica de LVM (Logical Volume Manager)
+# Tasca 4: Gestió emmagatzematge redundant amb LVM
 
-## Introducció
+## 1. Presentació
 
-LVM (Logical Volume Manager) és una eina de gestió d'emmagatzematge que permet crear, redimensionar i gestionar volums lògics de manera flexible en sistemes Linux. Aquesta guia proporciona una introducció bàsica a LVM, incloent els conceptes clau i els passos per configurar-lo.
+Som tècnics de la consultora **EverPia**. Un **bufet d'advocats** ens ha contractat perquè treballa amb dades molt sensibles i el seu sistema d'emmagatzematge actual pot fallar i perdre informació.
 
-Hem d'entendre que LVM és una capa d'abstracció entre el sistema operatiu i els dispositius d'emmagatzematge físics, permetent als administradors gestionar l'espai d'emmagatzematge de manera més eficient i flexible. Aporta avantatges com la possibilitat de redimensionar volums sense necessitat de reiniciar el sistema, crear instantànies per a còpies de seguretat i combinar diversos dispositius d'emmagatzematge en un únic espai lògic.
+Hem dissenyat una solució amb **LVM** a Linux (Zorin OS) que compleix tres objectius:
 
-## Conceptes clau
+- **Alta disponibilitat:** les dades continuen accessibles encara que falli un disc.
+- **Redundància:** les dades es guarden duplicades i es poden recuperar si s'esborren.
+- **Escalabilitat:** es pot ampliar l'espai quan faci falta, sense perdre dades.
 
-- **Physical Volume (PV)**: Un disc físic o una partició que s'utilitza com a base per a LVM. Es pot crear un PV a partir d'un disc dur, una partició o un dispositiu de bloc.
+Aquesta guia explica pas a pas com ho hem fet, perquè qualsevol persona ho pugui repetir.
 
-- **Volume Group (VG)**: Un grup de volums que combina diversos PVs en un únic espai d'emmagatzematge. Els VGs permeten gestionar l'espai de manera més flexible.
+---
 
-- **Logical Volume (LV)**: Un volum lògic creat dins d'un VG. Els LVs es poden redimensionar i gestionar de manera independent, permetent una major flexibilitat en la gestió de l'emmagatzematge.
+## 2. Conceptes bàsics de LVM
 
-![Diagrama de LVM](img/lvm01.png)
+**LVM** (Logical Volume Manager) és una eina de Linux que permet gestionar els discos de forma flexible. En lloc de treballar directament amb particions fixes, LVM ajunta els discos i després en fa "trossos" a mida.
 
-## Exemple pràctic sobre VM
+LVM té tres nivells:
 
-### Inicialització volums físics
+- **PV (Physical Volume):** és un disc físic (o una partició) preparat per fer-lo servir amb LVM. Per exemple, `/dev/sdb`.
+- **VG (Volume Group):** és un "magatzem" que ajunta l'espai de diversos PV. Per exemple, `vg1` ajunta `sdb` i `sdc`.
+- **LV (Logical Volume):** és un tros d'espai que agafem del VG i que fem servir com si fos un disc. Hi posem format i el muntem en una carpeta.
 
-El primer pas, serà crear els discos virtuals que utilitzarem, per exemple, es poden crear tres discos virtuals de 1GB cadascun. Un cop creats, es connectaran a la màquina virtual.
+Resumint: **discos (PV) → magatzem (VG) → volums (LV)**.
 
-![Discos virtuals](img/lvm02.png)
+---
 
-Un cop arrencada la màquina virtual, podem comprovar que els discos han estat reconeguts pel sistema amb la comanda `lsblk` o amb `fdisk -l`. Això ens mostrarà els dispositius de bloc disponibles, incloent els discos virtuals que hem creat, el disc principal serà `/dev/sda` i els discos virtuals seran `dev/sdb`, `dev/sdc` i `dev/sdd`.
+## 3. Preparació
 
-Ara cal crear els volums físics amb la comanda pvcreate (physical volume create) a partir de les particions desitjades.
+Fem servir una màquina virtual amb **Zorin OS** a **VirtualBox**. Abans d'engegar-la, hi afegim **2 discos de 10 GB**. Dins de Linux es diran `sdb` i `sdc`.
+
+Instal·lem el paquet `lvm2`, que conté les comandes de LVM, i mirem els discos que té la màquina:
+
+```bash
+sudo apt install lvm2 -y
+lsblk
+```
+
+![Instal·lació de lvm2 i discos amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20151636.png)
+
+---
+
+## 4. Configuració inicial
+
+### 4.1. Crear els volums físics (PV)
+
+Preparem els dos discos perquè LVM els pugui fer servir i comprovem que s'han creat:
 
 ```bash
 sudo pvcreate /dev/sdb
 sudo pvcreate /dev/sdc
-sudo pvcreate /dev/sdd
+sudo pvs
 ```
 
-### Creació i gestió del grup de volums
+![Volums físics creats amb pvs](img/Captura%20de%20pantalla%202026-11-17%20151746.png)
 
-El grup de volums és la capa on s’unifiquen els diferents discos físics per tal de tenir un espai base on es crearan els volums lògics. Es pot entendre com un contenidor que agrupa els volums físics i que per tant, agrupa l’espai d’emmagatzematge disponible. Per crear un grup de volums, utilitzarem la comanda vgcreate (volume group create) i li donarem un nom al grup de volums, per exemple `vg1`.
+### 4.2. Crear el grup de volums (VG)
+
+Ajuntem els dos discos en un grup que es diu `vg1` i en comprovem l'espai:
 
 ```bash
 sudo vgcreate vg1 /dev/sdb /dev/sdc
+sudo vgs
 ```
 
-Un cop creat el grup, no és un element immutable, sinó que es poden afegir o eliminar volums físics del grup de volums amb les comandes `vgextend` i `vgreduce`, respectivament.
+![Grup de volums vg1 amb vgs](img/Captura%20de%20pantalla%202026-11-17%20151851.png)
 
-Per exemple, per afegir el tercer volum físic al grup de volums, utilitzarem la comanda `vgextend`:
+### 4.3. Crear el volum lògic (LV)
 
-```bash
-sudo vgextend vg1 /dev/sdd
-```
-
-Si ara volguessem eliminar el tercer volum físic del grup de volums, utilitzarem la comanda `vgreduce`:
+Creem un volum lògic de 4 GB que es diu `lv1` i li donem format `ext4` perquè s'hi puguin guardar fitxers:
 
 ```bash
-sudo vgreduce vg1 /dev/sdd
-```
-
-Per veure la informació del grup de volums, podem utilitzar la comanda `vgdisplay` o `vgs`. La diferència és que `vgdisplay` mostra informació detallada dels grups de volums disponibles   , mentre que `vgs` mostra la informació de manera resumida.
-
-> 🔔 És bona idea provar totes dues comandes, per veure les diferències i ens quins casos es més útil usar una o l'altra.
-
-### Creació i gestió de volums lògics
-
-Els volums lògics es creen a partir del VG indicant la mida, el VG i el nom que se li vol donar amb la comanda `lvcreate` (logical volume create). Per exemple, per crear un volum lògic de 1GB dins del grup de volums `vg1` amb el nom `lv1`, utilitzarem la següent comanda:
-
-```bash
-sudo lvcreate -L 1G -n lv1 vg1 # -L per la mida, -n pel nom
-```
-
-Si ara es consulta la informació del grup de volums `vgdisplay vg1`, es podrà veure que s'ha creat un volum lògic de 1GB dins del grup de volums `vg1`. També es pot utilitzar la comanda `lvs` per veure els volums lògics disponibles.
-
-Un cop creat el volum lògic, cal formatar-lo amb un sistema de fitxers per poder utilitzar-lo. Per exemple, podem formatar el volum lògic `lv1` amb el sistema de fitxers ext4 utilitzant la comanda `mkfs.ext4`:
-
-```bash
+sudo lvcreate -L 4G -n lv1 vg1
 sudo mkfs.ext4 /dev/vg1/lv1
 ```
 
-> 💡La comanda `mkfs` permet formatejar el volum amb el sistema de fitxers desitjat: ext4, xfs, btrfs, exfat, ntfs, etc.
-
-Un cop formatat el volum cal muntar-lo en el sistema de fitxers per poder accedir-hi. Per exemple, podem muntar el volum lògic `lv1` en el directori `/mnt/lv1` utilitzant la comanda `mount`:
+Creem la carpeta on el muntarem i comprovem que el volum existeix:
 
 ```bash
 sudo mkdir -p /mnt/lv1
-sudo mount /dev/vg1/lv1 /mnt/lv1
+sudo lvs
 ```
 
-L’inconvenient és que caldria fer aquesta acció cada cop a l’iniciar la màquina, per evitar això, es pot afegir una entrada al fitxer `/etc/fstab` per muntar el volum automàticament a l’inici del sistema. Per exemple, afegint la següent línia al fitxer `/etc/fstab`:
+![Creació, format i comprovació de lv1](img/Captura%20de%20pantalla%202026-11-17%20152129.png)
+
+---
+
+## 5. Muntatge automàtic amb /etc/fstab
+
+Volem que el volum es munti sol cada vegada que s'engega l'ordinador. Per això l'afegim al fitxer `/etc/fstab`.
+
+Obrim el fitxer amb l'editor `nano`:
+
+```bash
+sudo nano /etc/fstab
+```
+
+Al final del fitxer afegim aquesta línia i el desem (`Ctrl+O`, `Enter`, `Ctrl+X`):
 
 ```text
 /dev/vg1/lv1 /mnt/lv1 ext4 defaults 0 0
 ```
 
-Per aplicar els canvis sense reiniciar, es pot utilitzar la comanda `sudo mount -av`:
+![Línia afegida a /etc/fstab](img/Captura%20de%20pantalla%202026-11-17%20152442.png)
 
-Com s'ha comentat anteriorment, una de les grans avantatges de LVM és la possibilitat de redimensionar els volums lògics sense necessitat de reiniciar el sistema. Per exemple, si volem augmentar la mida del volum lògic `lv1` a 2GB, podem utilitzar la comanda `lvresize` o `lvextend`. Per exemple, per augmentar la mida del volum lògic `lv1` a 2GB, utilitzarem la comanda següent:
-
-```bash
-sudo lvresize -L 2G /dev/vg1/lv1 #fixa nova mida
-sudo lvextend -L +1G /dev/vg1/lv1 #augmenta 1GB
-```
-
-**❗Abans de modificar un volum lògic sempre s’ha desmuntar perquè no estigui en ús (umount /mnt/lv1).**
-
-Un cop redimensionat el volum lògic, cal redimensionar el sistema de fitxers per tal que ocupi tot l'espai disponible.
+Muntem tot el que hi ha a `fstab` i comprovem que `lv1` surt muntat a `/mnt/lv1`:
 
 ```bash
-sudo e2fsck -f /dev/vg1/lv1 #comprova el sistema de fitxers abans de redimensionar
-sudo resize2fs /dev/vg1/lv1 #redimensiona el sistema de fitxers
+sudo mount -av
+df -h
 ```
 
-També es pot reduir la mida d'un volum lògic, però cal tenir en compte que això pot provocar pèrdua de dades si no es fa correctament. Per reduir la mida d'un volum lògic, primer cal reduir el sistema de fitxers i després reduir el volum lògic. Per exemple, per reduir el volum lògic `lv1` a 500MB, utilitzarem les següents comandes:
+![Muntatge amb mount -av i df -h](img/Captura%20de%20pantalla%202026-11-17%20152526.png)
+
+Finalment **reiniciem la màquina** i tornem a fer `df -h` per comprovar que el volum s'ha muntat sol.
+
+![df -h després del reinici](img/Captura%20de%20pantalla%202026-11-17%20153458.png)
+
+---
+
+## 6. Alta disponibilitat: volum en mirall
+
+Un **mirall** (RAID 1) guarda les mateixes dades en dos discos alhora. Si un disc es trenca, les dades continuen a l'altre.
+
+Creem un volum de 4 GB en mirall (`-m 1` vol dir "una còpia extra") i mirem a quins discos està:
 
 ```bash
-sudo umount /mnt/lv1 #desmunta el volum lògic
-sudo e2fsck -f /dev/vg1/lv1 #comprova
-sudo resize2fs /dev/vg1/lv1 500M #redimensiona el sistema de fitxers
-sudo lvreduce -L 500M /dev/vg1/lv1 #redueix el volum lògic
+sudo lvcreate -L 4G -m 1 -n lvm_mirror vg1
+sudo lvs -a -o name,copy_percent,devices vg1
 ```
 
-Si es vol eliminar un volum lògic, primer cal desmuntar-lo i després utilitzar la comanda `lvremove`. Per exemple, per eliminar el volum lògic `lv1`, utilitzarem les següents comandes:
+Aquí es veu que el volum `lvm_mirror` fa servir **`sdb` i `sdc` alhora**. Si fem `lsblk`, també es veu: cada disc té una part que es diu `rimage_0` i `rimage_1`, que són les dues còpies del mirall.
+
+![Creació del volum en mirall lvm_mirror](img/Captura%20de%20pantalla%202026-11-17%20153742.png)
+
+![lsblk amb les còpies rimage_0 i rimage_1 del mirall](img/Captura%20de%20pantalla%202026-11-17%20154830.png)
+
+Li donem format, creem la carpeta `/mnt/mirror` i l'hi muntem:
 
 ```bash
-sudo umount /mnt/lv1 #desmunta el volum lògic
-sudo lvremove /dev/vg1/lv1 #elimina el volum lògic
+sudo mkfs.ext4 /dev/vg1/lvm_mirror
+sudo mkdir -p /mnt/mirror
+sudo mount /dev/vg1/lvm_mirror /mnt/mirror
 ```
 
-> 💡Si s'ha configurat l'arxiu `/etc/fstab` per l'automuntatge del volum lògic, cal esborrar l'entrada abans d'eliminar el volum.
-
-### Snapshots (instantànies)
-
-El concepte de snapshot (instantània) és una característica molt útil de LVM que permet crear una còpia de seguretat d'un volum lògic en un moment determinat. La idea és similar a la instantània que es pot fer d'una màquina virtual.
-
-L'ús d'instantànies és especialment útil per a còpies de seguretat, proves de programari o qualsevol situació en què es necessiti un punt de restauració. Les instantànies permeten capturar l'estat d'un volum lògic sense interrompre el seu funcionament.
-
-> 🔔 Crear una instantània és una acció pràcticament immediata, mentre que fer una còpia de seguretat no. Per això és molt important usar aquesta tècnica per exemple en còpies de seguretat de bases de dades, perquè evitem haver d'aturar-la (si la BD es modifica mentre s'està fent la còpia, es pot produir un problema de consistència de les dades).
-
-Per fer una instatània d'un volum lògic, utilitzarem la comanda `lvcreate` amb l'opció `-s`. Per exemple, per crear una instantània del volum lògic `lv1` amb el nom `lv1_snapshot`, utilitzarem la següent comanda:
+I hi guardem un fitxer de prova:
 
 ```bash
-sudo lvcreate -L 500M -s -n lv1_snapshot /dev/vg1/lv1
+echo "dades del bufet" | sudo tee /mnt/mirror/prova.txt
 ```
 
-Aquí cal indicar:
+![Format, muntatge i fitxer de prova al mirall](img/Captura%20de%20pantalla%202026-11-17%20154416.png)
 
-- La mida de l'instantània (en aquest cas, 500MB). Aquesta mida ha de ser suficient per emmagatzemar els canvis que es facin al volum original mentre l'instantània estigui activa. Això dependrà del tipus d'ús del volum original i de la quantitat de dades que es modifiquin durant el període en què es mantingui l'instantània, habitualment entre el 10 i el 50% de la mida del volum original.
-- El nom de l'instantània (`lv1_snapshot`).
-- El volum lògic original del qual es vol crear la instantània (`/dev/vg1/lv1`).
+---
 
-Un cop feta la còpia de seguretat, es pot eliminar la instantània amb la comanda `lvremove`. Per exemple, per eliminar la instantània `lv1_snapshot`, utilitzarem la següent comanda:
+## 7. Instantànies (snapshots)
+
+Un **snapshot** és com una **"foto"** d'un volum en un moment concret. Si després s'esborren o es fan malbé les dades, podem tornar a l'estat de la foto.
+
+### 7.1. Afegir dos discos nous
+
+Amb la **màquina apagada**, afegim a VirtualBox **2 discos més de 10 GB**. Dins de Linux es diran `sdd` i `sde`.
+
+![Discos nous sdd i sde amb lsblk](img/Captura%20de%20pantalla%202026-11-17%20160232.png)
+
+Els preparem per a LVM, els afegim al grup `vg1` i comprovem que el grup ara és més gran:
 
 ```bash
-sudo lvremove /dev/vg1/lv1_snapshot
+sudo pvcreate /dev/sdd /dev/sde
+sudo vgextend vg1 /dev/sdd /dev/sde
+sudo vgs
 ```
 
-Pel contrari, si el que es vol és restaurar el volum original a l'estat de l'instantània, s'usarà la comanda `lvconvert --merge`. Per exemple, per restaurar el volum lògic `lv1` a l'estat de l'instantània `lv1_snapshot`:
+![vg1 ampliat amb sdd i sde](img/Captura%20de%20pantalla%202026-11-17%20160516.png)
+
+### 7.2. Crear el volum de dades
+
+Creem un volum de 5 GB que es diu `lv_dades`, **només al disc `sdd`**, i li donem format:
 
 ```bash
-sudo lvconvert --merge /dev/vg1/lv1_snapshot
+sudo lvcreate -L 5G -n lv_dades vg1 /dev/sdd
+sudo mkfs.ext4 /dev/vg1/lv_dades
 ```
 
-> ❗Aquestes operacions s'han de fer amb els volums desmuntats, ja que no es poden fer canvis en un volum lògic mentre està en ús.
-
-### Volum mirall (mirrored volume)
-
-Idea similar a un RAID 1 però a nivell de volums lògics. Proporciona redundància contra fallades físiques (sempre i quan es treballi amb més d'un disc físic).
-
-Partim d'un escenari amb els volums físics creats, però cap grup de volums. El primer pas, serà crear el grup de volums amb els volums físics disponibles. Per exemple, per crear un grup de volums `vg_mirror` amb els volums físics `/dev/sdb` i `/dev/sdc`, amb la següent comanda:
+El muntem a la carpeta `/mnt/lv_dades`:
 
 ```bash
-sudo vgcreate vg_mirror /dev/sdb /dev/sdc
+sudo mkdir -p /mnt/lv_dades
+sudo mount /dev/vg1/lv_dades /mnt/lv_dades
 ```
 
-A continuació, es crearà un volum lògic mirall amb la comanda `lvcreate` amb l'opció `-m`. Per exemple, per crear un volum lògic mirall de 750 MB amb el nom `lv_mirror` dins del grup de volums `vg_mirror`, cal usar la següent comanda:
+### 7.3. Afegir fitxers de prova
+
+Descarreguem tres imatges d'internet al volum perquè faci de "dades del bufet":
 
 ```bash
-sudo lvcreate -L 750M -m 1 -n lv_mirror vg_mirror
+sudo wget -O /mnt/lv_dades/imagen1.jpg https://picsum.photos/800
+sudo wget -O /mnt/lv_dades/imagen2.jpg https://picsum.photos/800
+sudo wget -O /mnt/lv_dades/imagen3.jpg https://picsum.photos/800
 ```
 
-El paràmetre `-m 1` indica que es vol crear un volum mirall amb una còpia de seguretat (mirroring) del volum original. Això significa que les dades escrites al volum lògic `lv_mirror` es duplicaran automàticament en el segon volum físic del grup de volums, es poden crear més miralls indicant un número més gran, per exemple `-m 2` crearia dos miralls.
+Comprovem que les imatges hi són:
 
-> 💡La gestió del LVM es menja part de l'espai. Es pot comprovar amb `vgdisplay` com la mida disponible és una mica inferior a la suma dels dos volums físics.
+```bash
+ls -l /mnt/lv_dades
+```
 
-## Enllaços d'interès
+![Imatges descarregades a lv_dades](img/Captura%20de%20pantalla%202026-11-17%20163529.png)
 
-- [LVM HOWTO](https://tldp.org/HOWTO/LVM-HOWTO/)
+### 7.4. Crear el snapshot
 
--[Un pingüino en mi servidor - LVM para torpes (I)](https://blog.inittab.org/administracion-sistemas/lvm-para-torpes-i/)
+Fem la "foto" de `lv_dades`. El snapshot ocupa 2 GB i el guardem al disc `sde`, que és un disc diferent del de les dades:
 
-- [Un pingüino en mi servidor - LVM para torpes (II)](https://blog.inittab.org/administracion-sistemas/lvm-para-torpes-ii/)
+```bash
+sudo lvcreate -L 2G -s -n lv_snapshot /dev/vg1/lv_dades /dev/sde
+sudo lvs
+```
 
-- [Un pingüino en mi servidor - LVM para torpes (III)](https://blog.inittab.org/administracion-sistemas/lvm-para-torpes-iii/)
+![Snapshot lv_snapshot creat](img/Captura%20de%20pantalla%202026-11-17%20163803.png)
+
+---
+
+## 8. Simular un desastre i restaurar
+
+### 8.1. Esborrar les dades
+
+Simulem que algú esborra per error tots els fitxers del volum i mirem què queda:
+
+```bash
+sudo rm /mnt/lv_dades/*
+ls -l /mnt/lv_dades
+```
+
+Les imatges han desaparegut. Només queda la carpeta **`lost+found`**: és normal, la crea `ext4` automàticament i `rm` sense `-r` no esborra carpetes.
+
+![Esborrat dels fitxers amb rm](img/Captura%20de%20pantalla%202026-11-17%20163924.png)
+
+![Dades esborrades, només queda lost+found](img/Captura%20de%20pantalla%202026-11-17%20164007.png)
+
+### 8.2. Restaurar des del snapshot
+
+Desmuntem el volum i fusionem el snapshot amb el volum original. Així el volum torna a l'estat de la "foto":
+
+```bash
+sudo umount /mnt/lv_dades
+sudo lvconvert --merge /dev/vg1/lv_snapshot
+```
+
+El tornem a muntar i comprovem que les imatges tornen a ser-hi:
+
+```bash
+sudo mount /dev/vg1/lv_dades /mnt/lv_dades
+ls -l /mnt/lv_dades
+```
+
+![Restauració amb lvconvert --merge i imatges recuperades](img/Captura%20de%20pantalla%202026-11-17%20164331.png)
+
+Després de la fusió, el **snapshot desapareix**: s'ha "gastat" per restaurar les dades. Si en volem un altre, l'hem de tornar a crear.
+
+---
+
+## 9. Escalabilitat: ampliar el volum
+
+LVM permet fer més gran un volum quan es queda petit, sense perdre les dades.
+
+Primer mirem quant ocupa ara `lv_dades` i quant espai lliure té el grup (columna **VFree**):
+
+```bash
+df -h /mnt/lv_dades
+sudo vgs
+```
+
+![Mida abans d'ampliar i espai lliure del VG](img/Captura%20de%20pantalla%202026-11-17%20164433.png)
+
+Desmuntem el volum i li donem tot l'espai lliure que queda al grup:
+
+```bash
+sudo umount /mnt/lv_dades
+sudo lvextend -l +100%FREE /dev/vg1/lv_dades
+```
+
+![Ampliació del volum amb lvextend](img/Captura%20de%20pantalla%202026-11-17%20164558.png)
+
+Revisem el sistema de fitxers i l'ampliem perquè ocupi tot el volum nou:
+
+```bash
+sudo e2fsck -f /dev/vg1/lv_dades
+sudo resize2fs /dev/vg1/lv_dades
+```
+
+![Revisió amb e2fsck i ampliació amb resize2fs](img/Captura%20de%20pantalla%202026-11-17%20164710.png)
+
+El tornem a muntar i comprovem que ara és més gran i que les imatges continuen allà:
+
+```bash
+sudo mount /dev/vg1/lv_dades /mnt/lv_dades
+df -h /mnt/lv_dades
+ls -l /mnt/lv_dades
+```
+
+![Mida després d'ampliar i dades intactes](img/Captura%20de%20pantalla%202026-11-17%20164851.png)
+
+---
+
+## 10. Problemes trobats i solucions
+
+| Problema | Causa | Solució |
+|----------|-------|---------|
+| En muntar `lv_dades` sortia l'error **"superbloque incorrecto"**. | El volum encara no tenia format. | Donar-li format amb `sudo mkfs.ext4 /dev/vg1/lv_dades` abans de muntar-lo. |
+| `cp ~/Downloads/*` donava error. | No hi havia cap imatge a la carpeta Downloads. | Descarregar les imatges directament amb `wget`. |
+| `wget` donava l'error **"opción incorrecta"**. | Havia escrit un **zero** (`-0`) en lloc de la **lletra O** (`-O`). | Escriure `-O` amb la lletra O majúscula. |
+
+---
+
+## 11. Conclusió per al client
+
+Amb aquesta solució, el bufet d'advocats té les seves dades molt més protegides:
+
+- **El mirall** protegeix davant la **fallada d'un disc**: les dades estan duplicades en dos discos i, si un es trenca, l'altre continua funcionant.
+- **Els snapshots** permeten **recuperar dades esborrades o danyades**, tornant a l'estat d'una "foto" anterior.
+- **LVM** permet **ampliar l'espai** afegint discos nous, **sense perdre dades** i sense haver de reinstal·lar res.
+
+**Recomanació per al bufet:** guardar els documents dels clients en un volum en **mirall**, fer **snapshots periòdics** (per exemple, cada dia abans de tancar) en un disc diferent, i deixar espai lliure al grup de volums per poder créixer quan calgui. Tot i això, LVM no substitueix les **còpies de seguretat**: cal tenir també còpies fora del servidor.
